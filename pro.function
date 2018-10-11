@@ -1,0 +1,519 @@
+$(document).ready(function(){
+  if($('#phones').length) SET.selectPhones();
+  if($('#unlock-phones').length) SET.selectUnlock();
+  if($('#idDel').length) SET.deleteItem();
+  if($('#chkFrm').length) SET.checkoutValidate();
+  if($('#check-carrier').length) SET.checkCarrier();
+  if($('#faq').length) SET.accord();
+  if($('#bubble-box').length) SET.bubbleBox();
+  if($('#cell-phones').length) SET.showPhonesVar();
+
+});
+
+var SET = {};
+
+SET.accord = function()
+{
+  $(".accordion h4").click(function(){
+    $(this).next(".ans").slideToggle("slow").siblings(".ans:visible").slideUp("slow");
+    $(this).toggleClass("active");
+    $(this).siblings("h4").removeClass("active");
+  });
+
+};
+
+SET.selectUnlock = function()
+{
+  var $one = $('#unlock-phones').find('.model-one');
+  var $btn = $one.find('.btn-sell');
+  var series_val, carrier_val, condition_val, imei_val;
+  $one.each(function(){
+    var $default = $(this).find('.condition-var > .active');
+    getModelDate($default);
+  });
+  function getModelDate($el)
+  {
+    var $parents = $el.parents('.white-box');
+    series_val    = $parents.prev().data('send');
+    carrier_val   = $parents.find('.select-carrier select option:selected').val();
+    condition_val = $parents.find('.condition-var .active > div').data('send');
+    $parents.find('button.btn-sell span').load(
+      '/unlock/_core/ajax-model-price.php',
+      {
+        series    : series_val,
+        carrier   : carrier_val,
+        condition : condition_val
+      }
+    );
+  }
+  $one.find('.select_wrapper select').change(function(){
+    getModelDate($(this));
+  });
+  $one.find('.condition-var > div').click(function(){
+    var n = $(this).index();
+    $(this).parent().find('.active').removeClass('active').end().end().addClass('active');
+    $(this).parent().next().find('.active').removeClass('active').hide().end().find('span:eq(' + n + ')').slideDown(400).addClass('active');
+    getModelDate($(this));
+  });
+
+  $btn.click(function(){
+    var $parents = $(this).parents('.white-box');
+    series_val    = $parents.prev().data('send');
+    carrier_val   = $parents.find('.select-carrier select option:selected').val();
+    condition_val = $parents.find('.condition-var .active > div').data('send');
+    imei_val = $parents.find('.lock-bad-box input').val();
+    $('#series').val(series_val);
+    $('#carrier').val(carrier_val);
+    $('#condition').val(condition_val);
+    $('#imei').val(imei_val);
+    var $thumb = $parents.find('.thumb');
+    var $src = $thumb.find('img').attr('src');
+    $thumb.append('<img class="anime" src="' + $src + '">');
+    $thumb.find('.anime').animate({top: '-260px', left: '200px', opacity: 0}, 500, function(){
+      unlockToCart($parents);
+      $(this).remove();
+    });
+  });
+};
+
+function unlockToCart($parents)
+{
+  var options = {
+    url:      '/unlock/_core/ajax-add-to-cart.php',
+    type:     'POST',
+    data:     {mod: 'add'},
+    success:  function(response) {
+      $('#items-qty').html(response);
+      $parents.find('.sell-btn > .btn-sell').hide();
+      if ($('#q_count').val() == 1 ) {
+        $parents.find('.sell-btn > .btn-blue').show();
+      }
+      $parents.find('.sell-btn > .btn-orange').show();
+    }
+  };
+  $('#addFrm').ajaxSubmit(options);
+}
+
+
+
+
+
+
+//-------------------------------------------------------
+SET.selectPhones = function()
+{
+  var $one = $('#phones').find('.model-one');
+  var $btn = $one.find('.btn-sell');
+  var series_val, carrier_val, memory_val, condition_val, misc_val;
+
+  $one.each(function(){
+    var $default = $(this).find('.condition-var > .active');
+    getModelDate($default);
+  });
+
+  $btn.click(function(){
+    var $parents = $(this).parents('.white-box');
+    series_val    = $parents.prev().text();
+    carrier_val   = $parents.find('.select-carrier select option:selected').val();
+    memory_val    = $parents.find('.select-memory li.active').text();
+    condition_val = $parents.find('.condition-var .active > div').data('send');
+    if ($one.find('.lock-bad-box > div').hasClass('bad active')) {
+      misc_val    = $parents.find('.warranty').find('input:checked').data('send');
+    }else{
+      misc_val      = $parents.find('.lock-bad-box .active').data('send');
+    }
+    $('#series').val(series_val);
+    $('#carrier').val(carrier_val);
+    $('#memory').val(memory_val);
+    $('#condition').val(condition_val);
+    $('#misc').val(misc_val);
+    var $thumb = $parents.find('.thumb');
+    var $src = $thumb.find('img').attr('src');
+    $thumb.append('<img class="anime" src="' + $src + '">');
+    $thumb.find('.anime').animate({top: '-260px', left: '200px', opacity: 0}, 500, function(){
+      addToCart($parents);
+      $(this).remove();
+    });
+  });
+
+  function getModelDate($el)
+  {
+    var $parents = $el.parents('.white-box');
+    series_val    = $parents.prev().text();
+    carrier_val   = $parents.find('.select-carrier select option:selected').val();
+    memory_val    = $parents.find('.select-memory li.active').text();
+    condition_val = $parents.find('.condition-var .active > div').data('send');
+    if ($one.find('.lock-bad-box > div').hasClass('bad active')) {
+      misc_val    = $parents.find('.warranty').find('input:checked').data('send');
+    }else{
+      misc_val    = $parents.find('.lock-bad-box .active').data('send');
+    }
+    $parents.find('button.btn-sell span').load(
+      '/_core/ajax-model-price.php',
+      {
+        series    : series_val,
+        carrier   : carrier_val,
+        memory    : memory_val,
+        condition : condition_val,
+        misc      : misc_val
+      }
+    );
+  }
+
+  $one.find('.select_wrapper select').change(function(){
+    getModelDate($(this));
+  });
+
+  $one.find('.select-memory li').click(function(){
+    $(this).parent().find('.active').removeClass('active').end().end().addClass('active');
+    getModelDate($(this));
+  });
+
+  $one.find('.condition-var > div').click(function(){
+    var n = $(this).index();
+    $(this).parent().find('.active').removeClass('active').end().end().addClass('active');
+    $(this).parent().next().find('.active').removeClass('active').hide().end().find('span:eq(' + n + ')').slideDown(400).addClass('active');
+    getModelDate($(this));
+  });
+
+  $one.find('.lock-bad-box > div').click(function(){
+    if ($(this).hasClass('active')) {
+      $(this).parent().find('.active').removeClass('active');
+    } else {
+      $(this).parent().find('.active').removeClass('active').end().end().addClass('active');
+    }
+    if ($(this).hasClass('bad active')) {
+      $(this).parent().parent().find('.warranty').show();
+      $(this).parent().parent().find('.warranty').find('label, input').click(function(){
+        getModelDate($(this));
+      });
+    } else {
+      $(this).parent().parent().find('.warranty').hide(100);
+    }
+    getModelDate($(this));
+  });
+
+
+  $one.find('.lock-bad-box > div').hover(
+    function () {
+      $(this).find('div').show(100);
+    },
+    function () {
+      $(this).find('div').hide(100);
+    }
+  )
+};
+
+function addToCart($parents)
+{
+  var options = {
+    url:      '/_core/ajax-add-to-cart.php',
+    type:     'POST',
+    data:     {mod: 'add'},
+    success:  function(response) {
+      $('#items-qty').html(response);
+      $parents.find('.sell-btn > .btn-sell').hide();
+      if ($('#q_count').val() == 1 ) {
+        $parents.find('.sell-btn > .btn-blue').show();
+      }
+      $parents.find('.sell-btn > .btn-orange').show();
+    }
+  };
+  $('#addFrm').ajaxSubmit(options);
+}
+
+SET.deleteItem = function()
+{
+
+  $('.del').click(function(){
+    $('#idDel').val($(this).attr('data-send'));
+    $('#fDel').submit();
+  });
+};
+SET.checkoutValidate = function()
+{
+  $('#Send-Label').click(function(){
+    $('#for-label').find('.focus').removeClass('focus');
+    $(this).addClass('focus');
+    $('#s_options').val('SendLabel');
+    EXT.hideOtherError(this);
+    return false;
+  });
+  $('#Print-Label').click(function(){
+    $('#for-label').find('.focus').removeClass('focus');
+    $(this).addClass('focus');
+    $('#s_options').val('PrintLabel');
+    EXT.hideOtherError(this);
+    return false;
+  });
+  $('#paid-Paypal').click(function(){
+    $('#for-paid').find('.focus').removeClass('focus');
+    $(this).addClass('focus');
+    $('.paypal').slideDown(400).find('#paypal').bind('blur', EXT.blurEmail);
+    $('#paid').val($(this).find('span').attr('id'));
+    EXT.hideOtherError(this);
+    return false;
+  });
+  $('#paid-Check').click(function(){
+    $('#for-paid').find('.focus').removeClass('focus');
+    $(this).addClass('focus');
+    $('.paypal').slideUp(400).find('#paypal').unbind('blur', EXT.blurEmail);
+    $('#paypal').val('');
+    $('#paid').val($(this).find('span').attr('id'));
+    EXT.hideOtherError(this);
+    return false;
+  });
+  $('#same-as').click(function(){
+    var email = $('#email').val();
+    $('#paypal').val(email);
+  });
+  $('input[placeholder]').placeholder();
+  $('#shipping-form').find('input, select')
+    .focus(function(){$(this).addClass('focus');})
+    .blur(function(){$(this).removeClass('focus');})
+    .bind('click, focus', EXT.hideError)
+  ;
+
+  var $l = $('#fname, #lname, #city');
+  var $a = $('#address1');
+  var $z = $('#zip');
+  var $e = $('#email');
+  $l.bind('keydown', function(e){
+    EXT.onlyLetters(e);
+  }).blur(EXT.blurText);
+  $a.blur(EXT.blurText);
+  $z.bind('keydown', function(e){
+    EXT.onlyDigit(e);
+  }).blur(EXT.blurZip);
+  $e.blur(EXT.blurEmail);
+  $('#proceed').click(EXT.submitForm);
+};
+
+
+var EXT = {};
+EXT.blurText = function()
+{
+  var $el = $(this);
+  var id = $el.attr('id');
+  if ($el.val() != ""){
+    if (id == "fname" || id == "lname"){
+      if (/^\d/.test($el.val())){
+        EXT.showError($el);
+      } else {
+        $el.addClass('valid');
+      }
+    } else {
+      $el.addClass('valid');
+    }
+  }
+};
+EXT.blurEmail = function()
+{
+  var $el = $(this);
+  if ($el.val() != ""){
+    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/.test($el.val())){
+      $el.addClass('valid');
+    } else {
+      EXT.showError($el);
+    }
+  }
+};
+EXT.blurPhone = function()
+{
+  var $el = $(this);
+  var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+  if ($el.val() != ""){
+    if ($el.val().match(phoneno)){
+      $el.addClass('valid');
+    } else {
+      EXT.showError($el);
+    }
+  }
+};
+EXT.blurZip = function()
+{
+  var $el = $(this);
+  if ($el.val() != ""){
+    if ($el.val().length == 5){
+      $el.addClass('valid');
+    } else {
+      EXT.showError($el);
+    }
+  }
+};
+EXT.onlyLetters = function(event)
+{
+  if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 ||
+    (event.keyCode == 65 && event.ctrlKey === true) ||
+    (event.keyCode >= 35 && event.keyCode <= 39)) {
+    return true;
+  } else {
+    if (!((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 ))) {
+      event.preventDefault();
+    }
+    return true;
+  }
+};
+EXT.onlyDigit = function(event)
+{
+  if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 ||
+    (event.keyCode == 65 && event.ctrlKey === true) ||
+    (event.keyCode >= 35 && event.keyCode <= 39)) {
+    return true;
+  } else {
+    if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+      event.preventDefault();
+    }
+    return true;
+  }
+};
+EXT.showError = function($el)
+{
+  $el.removeClass('valid').addClass('err').next().fadeIn(300);
+};
+EXT.hideError = function()
+{
+  $(this).removeClass('valid').removeClass('err').next().fadeOut(300);
+};
+EXT.hideOtherError = function(el)
+{
+  $(el).parents('.be-paid').find('.errMsg').fadeOut(300);
+};
+
+EXT.submitForm = function(){
+  var $l = $('#fname, #lname, #city, #address1');
+  $l.each(EXT.checkText);
+  var $z = $('#zip');
+  $z.each(EXT.checkZip);
+  var $e = $('#email');
+  $e.each(EXT.checkEmail);
+  var $s = $('#state');
+  $s.each(EXT.checkState);
+  var $o = $('#paid, #s_options');
+  $o.each(EXT.checkOther);
+  if ($('.errMsg:visible').length == 0){
+    $('#loading').show();
+    $('#chkFrm').delay(1000).submit();
+  }
+  return false;
+};
+EXT.checkText = function()
+{
+  var $el = $(this);
+  var id = $el.attr('id');
+  if (id == "fname" || id == "lname"){
+    if (/^\d/.test($el.val()) || $el.val() == ""){
+      EXT.showError($el);
+    }
+  } else {
+    if ($el.val() == ""){
+      EXT.showError($el);
+    }
+  }
+};
+EXT.checkEmail = function()
+{
+  var $el = $(this);
+  if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/.test($el.val())) || $el.val() == ""){
+    EXT.showError($el);
+  }
+};
+EXT.checkZip = function()
+{
+  var $el = $(this);
+  if (!($el.val().length == 5 || $el.val() != "")){
+    EXT.showError($el);
+  }
+};
+EXT.checkState = function()
+{
+  var $el = $(this);
+  if ($el.find('option:selected').val() == "State"){
+    EXT.showError($el);
+  }
+};
+
+EXT.checkOther = function()
+{
+  var $el = $(this);
+  if ($el.val() == ""){
+    EXT.showError($el);
+  }
+  if ($('#paid').val() == "cart-paypal"){
+    $('#paypal').each(EXT.checkEmail);
+  }
+};
+
+SET.bubbleBox = function()
+{
+  var $bubble = $('div#bubble-box > div');
+  var $input = $('#bubble-box').find('input, textarea');
+  var v, str;
+  $input.blur(function(){
+    v = $(this).val();
+    if (v != "") {
+      str = '<div class="input-result">' + v + '</div><i></i>';
+      $(this).parent().append(str).end().prev().hide().end().hide();
+    }
+  });
+  $bubble.click(function(){
+    if (!$(this).find('label').is(':visible')) {
+      $(this).find('.input-result, i').remove();
+      $(this).find('label').show().next().show().focus();
+    }
+  });
+};
+
+SET.showPhonesVar = function()
+{
+  var $html = $('html, body');
+  var $box = $('#cell-phones');
+  var $iphones = $('#iphones');
+  var $galaxies = $('#galaxies');
+  var $a = $box.find('a');
+  var mod, tmp;
+
+  $a.click(function(){
+    tmp = $(this).prop('class').split('-');
+    mod = tmp[0];
+    if (mod == "iphones") {
+      $iphones.slideToggle(400);
+      $galaxies.slideUp(300);
+    }
+    if (mod == "galaxies") {
+      $galaxies.slideToggle(400);
+      $iphones.slideUp(300);
+    }
+    var q = $box.offset();
+    $html.animate({scrollTop: q.top}, 300, 'easeOutCubic');
+    return false;
+  });
+};
+
+SET.checkCarrier = function()
+{
+  var $box = $('#check-carrier');
+  var $target = $box.find('.check-result');
+  var $input = $('#model_number');
+  $box.find('button').click(function(){
+    $target.html('').hide();
+    if ($input.val() == "") {
+      $target.html('<p>Please Insert Model number</p>').slideDown(400);
+    } else {
+      $.ajax({
+        url: '/_core/ajax-check-iphone-carrier.php',
+        type: 'POST',
+        data: { number: $input.val() },
+        dataType: 'json',
+        success: function(json){
+          if (json.id === 0) {
+            $target.html('<p>Sorry, Carrier not Found</p>');
+          } else {
+            $target.html('<p>Check result: <span>' + json.title + '</span></p>');
+          }
+          $target.slideDown(400);
+        }
+      });
+    }
+  });
+};
